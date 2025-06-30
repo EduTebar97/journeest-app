@@ -1,0 +1,82 @@
+.pageWrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f0f9ff;
+    padding: 2rem;
+  }
+  
+  .container {
+    max-width: 700px;
+    width: 100%;
+    background: #fff;
+    padding: 3rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    text-align: center;
+  }
+  
+  .title {
+    font-size: 2.25rem;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+  }
+  
+  .subtitle {
+    font-size: 1.25rem;
+    color: var(--text-light);
+    margin-bottom: 2.5rem;
+  }
+  
+  .content {
+    text-align: left;
+    color: var(--text-color);
+    line-height: 1.6;
+    margin-bottom: 2.5rem;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    padding: 2rem 0;
+  }
+  
+  .content ul {
+    list-style-position: inside;
+    padding-left: 1rem;
+  }
+  
+  .content li {
+    margin-bottom: 0.5rem;
+  }
+  
+  .startButton {
+    display: inline-block;
+    padding: 1rem 2.5rem;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--primary-color);
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+  }
+  
+  .startButton:hover {
+    background-color: #357ABD;
+  }
+  
+  .footer {
+    text-align: center;
+    padding-top: 3rem;
+    font-size: 14px;
+    color: #9ca3af;
+  }
+  
+  .logoFuturlogix {
+    height: 68px;
+    opacity: 1;
+    margin-top: 0.5rem;
+  }
+  

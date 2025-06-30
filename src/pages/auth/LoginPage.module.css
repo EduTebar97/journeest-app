@@ -1,0 +1,105 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f0f9ff;
+  }
+  
+  .formWrapper {
+    background: #fff;
+    padding: 3rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    width: 100%;
+    max-width: 450px;
+    text-align: center;
+  }
+  
+  .logo {
+    height: 130px; /* Tamaño del logo */
+    margin-bottom: 1rem;
+  }
+  
+  .title {
+    font-size: 1.5rem;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+  }
+  
+  .subtitle {
+    color: var(--text-light);
+    margin-bottom: 2rem;
+  }
+  
+  .inputGroup {
+    margin-bottom: 1.25rem;
+    text-align: left;
+  }
+  
+  .inputGroup label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+  
+  .inputGroup input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+  }
+  
+  .inputGroup input:focus {
+    outline: 2px solid var(--primary-color);
+    border-color: transparent;
+  }
+  
+  .error {
+    color: var(--error-color);
+    background-color: #fef2f2;
+    border: 1px solid var(--error-color);
+    padding: 0.75rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+  }
+  
+  .submitButton {
+    width: 100%;
+    padding: 1rem;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--primary-color);
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .submitButton:hover {
+    background-color: #0f766e;
+  }
+  
+  .submitButton:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+  }
+  
+  .registerLink {
+    margin-top: 2rem;
+    color: var(--text-light);
+  }
+  
+  .registerLink a {
+    color: var(--primary-color);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  
+  .registerLink a:hover {
+    text-decoration: underline;
+  }
+  
+  
