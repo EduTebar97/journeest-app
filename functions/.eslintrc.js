@@ -1,3 +1,4 @@
+
 module.exports = {
   root: true,
   env: {
@@ -22,9 +23,9 @@ module.exports = {
   ],
   plugins: ["@typescript-eslint", "import"],
   rules: {
-    "import/no-unresolved": 0,
     "quotes": ["error", "double"],
-    // AÑADIMOS ESTA REGLA PARA SOLUCIONAR EL ERROR DE DEPLOY
+    "import/no-unresolved": 0,
+    // Desactivamos la regla que causa el error.
     "@typescript-eslint/no-unused-expressions": "off",
   },
 };

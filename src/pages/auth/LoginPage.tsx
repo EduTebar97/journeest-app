@@ -1,93 +1,91 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../config/firebase';
-import styles from './LoginPage.module.css'; // Usaremos un nuevo archivo de estilos
 
-// URL del logo de Journeest
-const journeestLogoUrl = "https://i.imgur.com/IKpS29L.png";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
-const LoginPage = () => {
-  // Estados para el formulario
+const LoginPage: React.FC = () => {
+  const { login } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  // Estados para la carga y errores
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Hook para redirigir
-  const navigate = useNavigate();
-
-  // Función para manejar el inicio de sesión
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError(null);
     setLoading(true);
 
     try {
-      // Iniciar sesión con Firebase
-      await signInWithEmailAndPassword(auth, email, password);
+      // El login devuelve el perfil del usuario, pero no necesitamos chequear el rol aquí.
+      await login(email, password);
       
-      // Si tiene éxito, redirigir al dashboard
-      navigate('/dashboard');
+      // La redirección ahora es mucho más simple.
+      // Enviamos a todos los usuarios a /dashboard, que se encargará de
+      // redirigir al panel de admin o a donde corresponda.
+      navigate('/dashboard', { replace: true });
 
     } catch (err: any) {
-      // Manejo de errores comunes de Firebase
-      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-        setError('El correo o la contraseña son incorrectos.');
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+        setError('Email o contraseña incorrectos.');
       } else {
-        setError('Ocurrió un error. Por favor, inténtalo de nuevo.');
-        console.error('Login Error:', err);
+        setError('Fallo en el inicio de sesión. Por favor, inténtalo de nuevo.');
+        console.error(err);
       }
-    } finally {
-      setLoading(false);
+      setLoading(false); // Asegúrate de parar la carga en caso de error
     }
+    // No es necesario el finally, el setLoading se maneja en los dos caminos (éxito/error).
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.formWrapper}>
-        <img src={journeestLogoUrl} alt="Journeest Logo" className={styles.logo} />
-        <h2 className={styles.title}>Bienvenido de nuevo</h2>
-        <p className={styles.subtitle}>Inicia sesión para acceder a tu panel.</p>
-        
-        <form onSubmit={handleLogin}>
-          <div className={styles.inputGroup}>
-            <label htmlFor="email">Correo Electrónico</label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className={styles.inputGroup}>
-            <label htmlFor="password">Contraseña</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          
-          {error && <p className={styles.error}>{error}</p>}
-          
-          <button type="submit" className={styles.submitButton} disabled={loading}>
-            {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-          </button>
-        </form>
-
-        <p className={styles.registerLink}>
-          ¿No tienes una cuenta? <Link to="/registro">Regístrate</Link>
-        </p>
-      </div>
+    <div style={styles.container}>
+        <div style={styles.loginBox}>
+            <h2 style={styles.title}>Iniciar Sesión</h2>
+            <p style={styles.subtitle}>Bienvenido de nuevo a Journeest.</p>
+            <form onSubmit={handleSubmit}>
+                <div style={styles.inputGroup}>
+                    <label htmlFor="email" style={styles.label}>Email</label>
+                    <input
+                        type="email"
+                        id="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        style={styles.input}
+                    />
+                </div>
+                <div style={styles.inputGroup}>
+                    <label htmlFor="password" style={styles.label}>Contraseña</label>
+                    <input
+                        type="password"
+                        id="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        style={styles.input}
+                    />
+                </div>
+                {error && <p style={styles.error}>{error}</p>}
+                <button type="submit" disabled={loading} style={styles.button}>
+                    {loading ? 'Iniciando sesión...' : 'Login'}
+                </button>
+            </form>
+        </div>
     </div>
   );
 };
 
-export default LoginPage;
+// Styles for a more modern look
+const styles: { [key: string]: React.CSSProperties } = {
+    container: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', backgroundColor: '#f0f2f5' },
+    loginBox: { padding: '40px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', width: '100%', maxWidth: '400px' },
+    title: { textAlign: 'center', color: '#172b4d', marginBottom: '10px' },
+    subtitle: { textAlign: 'center', color: '#5e6c84', marginBottom: '30px' },
+    inputGroup: { marginBottom: '20px' },
+    label: { display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#5e6c84' },
+    input: { width: '100%', padding: '10px', border: '1px solid #dfe1e6', borderRadius: '3px', boxSizing: 'border-box' },
+    error: { color: '#de350b', textAlign: 'center', marginBottom: '15px' },
+    button: { width: '100%', padding: '12px', border: 'none', borderRadius: '3px', backgroundColor: '#0052cc', color: 'white', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px' }
+};
 
+export default LoginPage;

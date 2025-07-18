@@ -1,53 +1,113 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { onAuthStateChanged, type User } from 'firebase/auth';
-import { auth } from '../config/firebase';
 
-// Definimos el tipo de valor que tendrá nuestro contexto para que TypeScript sepa qué esperar.
-interface AuthContextType {
-  currentUser: User | null;
-  loading: boolean;
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { onAuthStateChanged, User as FirebaseAuthUser } from 'firebase/auth';
+import { auth } from '../config/firebase';
+import * as authService from '../services/authService';
+import { UserProfile } from '../types';
+
+// Define the shape of the data needed for registration
+interface RegistrationData {
+    email: string;
+    password: string;
+    companyData: { name: string; brand: string; type: string; };
+    adminProfile: { name: string; position: string; phone?: string; };
+    initialObjectives: string[];
 }
 
-// Creamos el contexto con un valor inicial por defecto.
-const AuthContext = createContext<AuthContextType>({ currentUser: null, loading: true });
+interface AuthContextType {
+  currentUser: UserProfile | null;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<UserProfile>;
+  registerAndCreateCompany: (data: RegistrationData) => Promise<UserProfile>;
+  logout: () => Promise<void>;
+}
 
-// Creamos un "hook" personalizado. Esto es una función para que otros componentes
-// puedan acceder fácilmente a la información del contexto sin escribir mucho código.
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
 export const useAuth = () => {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth debe usarse dentro de un AuthProvider');
+  }
+  return context;
 };
 
-// Creamos el componente "Proveedor". Su trabajo es envolver nuestra aplicación
-// y proveer la información del usuario a todos los componentes que estén dentro.
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // useEffect se ejecuta una vez cuando el componente se monta.
   useEffect(() => {
-    // onAuthStateChanged es un "oyente" mágico de Firebase.
-    // Se ejecuta automáticamente cuando un usuario inicia sesión o la cierra.
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user); // Guardamos el usuario (o null si cierra sesión)
-      setLoading(false); // Dejamos de "cargar" una vez que tenemos la respuesta
+    console.log('[AuthContext] Subscribing to auth state changes.');
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseAuthUser | null) => {
+      console.log('[AuthContext] onAuthStateChanged triggered.');
+      try {
+        if (firebaseUser) {
+          console.log(`[AuthContext] Firebase user detected with UID: ${firebaseUser.uid}. Fetching profile...`);
+          const userProfile = await authService.getUserProfile(firebaseUser.uid);
+          
+          if (userProfile) {
+            console.log('[AuthContext] User profile found:', userProfile);
+            setCurrentUser(userProfile);
+          } else {
+            console.log('[AuthContext] No user profile found for the given UID. Setting user to null.');
+            setCurrentUser(null);
+          }
+        } else {
+          console.log('[AuthContext] No Firebase user detected. User is logged out.');
+          setCurrentUser(null);
+        }
+      } catch (error) {
+        console.error("[AuthContext] Error during auth state change:", error);
+        setCurrentUser(null);
+      } finally {
+        console.log('[AuthContext] Finished auth state change processing. Setting loading to false.');
+        setLoading(false);
+      }
     });
 
-    // Esta función se ejecuta cuando el componente se "desmonta" (deja de usarse).
-    // Sirve para limpiar el oyente y evitar problemas de memoria.
-    return unsubscribe;
-  }, []); // El array vacío [] significa que este efecto solo se ejecuta una vez.
+    return () => {
+      console.log('[AuthContext] Unsubscribing from auth state changes.');
+      unsubscribe();
+    };
+  }, []);
 
-  const value = {
-    currentUser,
-    loading,
+  const login = async (email: string, password: string): Promise<UserProfile> => {
+    console.log(`[AuthContext] Attempting login for ${email}`);
+    const user = await authService.signIn(email, password);
+    setCurrentUser(user);
+    return user;
   };
 
-  // Finalmente, el proveedor devuelve el contexto con el valor actualizado.
-  // No mostramos la aplicación (children) hasta que la carga inicial termine.
-  // Esto evita parpadeos o que se muestren páginas incorrectas por un instante.
+  const registerAndCreateCompany = async (data: RegistrationData): Promise<UserProfile> => {
+    console.log(`[AuthContext] Attempting registration for ${data.email}`);
+    const userProfile = await authService.registerAndCreateCompany(data);
+    setCurrentUser(userProfile);
+    return userProfile;
+  };
+
+  const logout = async (): Promise<void> => {
+    console.log('[AuthContext] Logging out user.');
+    await authService.logOut();
+    setCurrentUser(null);
+  };
+
+  const value: AuthContextType = {
+    currentUser,
+    loading,
+    login,
+    registerAndCreateCompany,
+    logout,
+  };
+
+  console.log(`[AuthContext] Rendering AuthProvider. Loading: ${loading}, CurrentUser:`, currentUser);
+
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };

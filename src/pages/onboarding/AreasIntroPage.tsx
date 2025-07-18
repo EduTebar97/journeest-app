@@ -1,43 +1,54 @@
-import { Link } from 'react-router-dom';
-import styles from './AreasIntroPage.module.css';
 
-// URLs de los logos
-const futurlogixLogoUrl = "https://i.imgur.com/sKQhiGY.png";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import BackButton from '../../components/common/BackButton';
 
-const AreasIntroPage = () => {
-  return (
-    <div className={styles.pageWrapper}>
-      <div className={styles.container}>
-        <h1 className={styles.title}>¡Bienvenido a Journeest!</h1>
-        <p className={styles.subtitle}>Estás a punto de iniciar el diagnóstico de tu empresa.</p>
-        
-        <div className={styles.content}>
-          <p>
-            El siguiente paso es fundamental: vamos a definir las <strong>áreas clave</strong> de tu negocio. Piensa en los departamentos o funciones principales que componen tu operación, como por ejemplo:
-          </p>
-          <ul>
-            <li>Recepción y Reservas</li>
-            <li>Marketing y Ventas</li>
-            <li>Restauración (F&B)</li>
-            <li>Mantenimiento y Limpieza</li>
-            <li>Administración y Finanzas</li>
-          </ul>
-          <p>
-            Al definir estas áreas y asignar un responsable a cada una, podremos realizar un análisis profundo y personalizado, departamento por departamento.
-          </p>
+const AreasIntroPage: React.FC = () => {
+    const navigate = useNavigate();
+    const { currentUser } = useAuth();
+
+    const handleContinue = () => {
+        navigate('/onboarding/builder');
+    };
+
+    return (
+        <div style={styles.pageContainer}>
+            <div style={styles.contentCard}>
+                <BackButton />
+                <h1 style={styles.title}>¡Bienvenido, {currentUser?.name || 'Administrador'}!</h1>
+                <p style={styles.subtitle}>Has completado el primer paso. Ahora, vamos a construir el organigrama de tu negocio.</p>
+
+                <div style={styles.section}>
+                    <h2 style={styles.sectionTitle}>¿Por qué es tan importante definir las áreas?</h2>
+                    <p style={styles.paragraph}>
+                        Un diagnóstico preciso comienza con una comprensión clara de cómo funciona tu empresa. Al definir cada área funcional, podemos realizar un análisis específico y profundo.
+                    </p>
+                    <ul style={styles.list}>
+                        <li><strong>Identificar problemas</strong> y oportunidades con una precisión quirúrgica.</li>
+                        <li><strong>Involucrar a los responsables</strong> de cada área para obtener información de primera mano.</li>
+                        <li><strong>Generar informes personalizados</strong> y planes de acción verdaderamente relevantes.</li>
+                    </ul>
+                </div>
+                
+                <button onClick={handleContinue} style={styles.button}>
+                    Entendido, ¡vamos a construir!
+                </button>
+            </div>
         </div>
+    );
+};
 
-        <Link to="/onboarding/areas" className={styles.startButton}>
-          Empezar a Crear Áreas
-        </Link>
-      </div>
-
-      <footer className={styles.footer}>
-        <p>Powered by</p>
-        <img src={futurlogixLogoUrl} alt="Futurlogix Logo" className={styles.logoFuturlogix} />
-      </footer>
-    </div>
-  );
+const styles: { [key: string]: React.CSSProperties } = {
+    pageContainer: { backgroundColor: '#f0f2f5', padding: '40px 20px', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' },
+    contentCard: { backgroundColor: 'white', padding: '40px', borderRadius: '8px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', width: '100%', maxWidth: '800px' },
+    title: { color: '#172b4d', textAlign: 'center', marginBottom: '10px' },
+    subtitle: { color: '#5e6c84', textAlign: 'center', marginBottom: '40px', fontSize: '1.2rem' },
+    section: { textAlign: 'left', marginBottom: '30px' },
+    sectionTitle: { fontSize: '1.4rem', color: '#0052cc', marginBottom: '15px' },
+    paragraph: { color: '#172b4d', lineHeight: '1.6' },
+    list: { paddingLeft: '20px', color: '#172b4d', lineHeight: '1.8' },
+    button: { width: '100%', padding: '15px', border: 'none', borderRadius: '5px', backgroundColor: '#4A90E2', color: 'white', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', marginTop: '20px' },
 };
 
 export default AreasIntroPage;
