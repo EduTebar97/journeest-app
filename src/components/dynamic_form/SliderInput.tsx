@@ -9,9 +9,10 @@ interface SliderInputProps {
   onChange: (value: number) => void;
   min?: number;
   max?: number;
+  disabled?: boolean;
 }
 
-const SliderInput: React.FC<SliderInputProps> = ({ id, label, description, value, onChange, min = 0, max = 100 }) => {
+const SliderInput: React.FC<SliderInputProps> = ({ id, label, description, value, onChange, min = 0, max = 100, disabled = false }) => {
   const currentValue = value ?? min;
 
   return (
@@ -26,7 +27,8 @@ const SliderInput: React.FC<SliderInputProps> = ({ id, label, description, value
           max={max}
           value={currentValue}
           onChange={(e) => onChange(Number(e.target.value))}
-          style={styles.slider}
+          style={{ ...styles.slider, ...(disabled && styles.disabled) }}
+          disabled={disabled}
         />
         <span style={styles.sliderValue}>{currentValue}</span>
       </div>
@@ -63,6 +65,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '1.1rem',
     minWidth: '30px',
     textAlign: 'center'
+  },
+  disabled: {
+    cursor: 'not-allowed',
   }
 };
 

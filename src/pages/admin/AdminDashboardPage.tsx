@@ -16,84 +16,58 @@ const AdminDashboardPage: React.FC = () => {
     const { currentUser } = useContext(AuthContext)!;
 
     const fetchAreas = useCallback(async () => {
-        if (!currentUser?.companyId) {
-            console.log('[Dashboard] fetchAreas called but no companyId available. Aborting.');
-            setLoading(false);
-            return;
-        }
-
-        console.log(`[Dashboard] Starting to fetch areas for companyId: ${currentUser.companyId}`);
+        if (!currentUser?.companyId) return;
         setLoading(true);
         setError(null);
-
         try {
             const areasRef = collection(db, 'areas');
             const q = query(areasRef, where('companyId', '==', currentUser.companyId));
-            
-            console.log('[Dashboard] Executing Firestore query...');
             const querySnapshot = await getDocs(q);
-            
-            if (querySnapshot.empty) {
-                console.log('[Dashboard] Firestore query returned no documents.');
-            } else {
-                console.log(`[Dashboard] Firestore query returned ${querySnapshot.docs.length} documents.`);
-            }
-
             const areasData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Area));
             setAreas(areasData);
-            console.log('[Dashboard] Areas state updated:', areasData);
-
         } catch (err) {
-            console.error('[Dashboard] Error fetching areas:', err);
             setError('No se pudieron cargar las áreas. Por favor, intente de nuevo.');
         } finally {
-            console.log('[Dashboard] Finished fetching areas. Setting loading to false.');
             setLoading(false);
         }
     }, [currentUser?.companyId]);
 
     useEffect(() => {
-        console.log('[Dashboard] useEffect triggered. Current user:', currentUser);
         if (currentUser) {
             fetchAreas();
-        } else {
-            // Si no hay usuario, puede que aún esté cargando desde AuthContext
-            console.log('[Dashboard] useEffect waiting for currentUser...');
         }
     }, [currentUser, fetchAreas]);
 
+    // Calcula si todas las áreas están listas para el informe general
+    const allAreasCompleted = areas.length > 0 && areas.every(area => area.status === 'report_ready');
+
     const getStatusChip = (status: Area['status']) => {
-        const styles: React.CSSProperties = { padding: '4px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' };
+        const baseStyle: React.CSSProperties = { padding: '4px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' };
         switch (status) {
-            case 'completed': return <span style={{ ...styles, backgroundColor: '#e6f7ff', color: '#1890ff' }}>En Revisión</span>;
-            case 'report_ready': return <span style={{ ...styles, backgroundColor: '#d4edda', color: '#155724' }}>Informe Listo</span>;
-            case 'in_progress': return <span style={{ ...styles, backgroundColor: '#fffbe6', color: '#faad14' }}>En Progreso</span>;
-            case 'pending': return <span style={{ ...styles, backgroundColor: '#f6f6f6', color: '#595959' }}>Pendiente</span>;
+            case 'completed': return <span style={{ ...baseStyle, backgroundColor: '#e6f7ff', color: '#1890ff' }}>Completado</span>;
+            case 'report_ready': return <span style={{ ...baseStyle, backgroundColor: '#d4edda', color: '#155724' }}>Informe Listo</span>;
+            case 'in_progress': return <span style={{ ...baseStyle, backgroundColor: '#fffbe6', color: '#faad14' }}>En Progreso</span>;
+            case 'pending': return <span style={{ ...baseStyle, backgroundColor: '#f6f6f6', color: '#595959' }}>Pendiente</span>;
             default: return <span>{status}</span>;
         }
     };
     
     const renderActionForArea = (area: Area) => {
-        if (area.status === 'report_ready') {
-            return <Link to={`/report/view/${area.id}`} style={styles.actionButton}>Ver Informe Final</Link>;
-        }
+        const formLink = `/report/editor/${area.formId}?readOnly=true`;
         
-        if (area.responsible.email === currentUser?.email && (area.status === 'pending' || area.status === 'in_progress')) {
+        if (area.status === 'report_ready') {
             return (
-                <Link to={`/report/editor/${area.formId}`} style={styles.linkButton}>
-                    {area.status === 'pending' ? 'Comenzar Diagnóstico' : 'Continuar'}
-                </Link>
+                <>
+                    <Link to={`/report/view/${area.id}`} style={styles.actionButton}>Ver Informe</Link>
+                    <span style={styles.separator}>|</span>
+                    <Link to={formLink} style={styles.linkButton}>Ver Formulario</Link>
+                </>
             );
         }
-
-        if (area.status === 'completed') {
-            return <span style={styles.disabledText}>En revisión por Futurlogix</span>
-        }
         
-        return <span style={styles.disabledText}>-</span>;
+        return <Link to={formLink} style={styles.linkButton}>Ver Formulario</Link>;
     };
 
-    console.log(`[Dashboard] Rendering component. Loading: ${loading}`);
     if (loading) return <div>Cargando panel...</div>;
     
     return (
@@ -112,19 +86,31 @@ const AdminDashboardPage: React.FC = () => {
                                 <th style={styles.th}>Área de la Empresa</th>
                                 <th style={styles.th}>Responsable</th>
                                 <th style={styles.th}>Estado</th>
-                                <th style={styles.th}>Acción</th>
+                                <th style={styles.th}>Acción Individual</th>
+                                <th style={styles.th}>Diagnóstico General</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {areas.length > 0 ? areas.map(area => (
+                            {areas.length > 0 ? areas.map((area, index) => (
                                 <tr key={area.id}>
                                     <td style={styles.td}>{area.name}</td>
                                     <td style={styles.td}>{area.responsible.name || area.responsible.email}</td>
                                     <td style={styles.td}>{getStatusChip(area.status)}</td>
                                     <td style={styles.td}>{renderActionForArea(area)}</td>
+                                    <td style={styles.td}>
+                                        {index === 0 && (
+                                            allAreasCompleted ? (
+                                                <Link to="/overall-report" style={styles.actionButton}>
+                                                    Ver y Editar
+                                                </Link>
+                                            ) : (
+                                                <span style={styles.disabledText}>Pendiente</span>
+                                            )
+                                        )}
+                                    </td>
                                 </tr>
                             )) : (
-                                <tr><td colSpan={4} style={styles.emptyCell}>No hay diagnósticos activos para tu empresa.</td></tr>
+                                <tr><td colSpan={5} style={styles.emptyCell}>No hay diagnósticos activos para tu empresa.</td></tr>
                             )}
                         </tbody>
                     </table>
@@ -149,10 +135,11 @@ const styles: { [key:string]: React.CSSProperties } = {
     tableContainer: { marginTop: '2rem', backgroundColor: 'white', borderRadius: '3px', border: '1px solid #dfe1e6' },
     table: { width: '100%', borderCollapse: 'collapse' },
     th: { backgroundColor: '#f4f5f7', padding: '15px', textAlign: 'left', borderBottom: '1px solid #dfe1e6', color: '#5e6c84' },
-    td: { padding: '15px', textAlign: 'left', borderBottom: '1px solid #dfe1e6' },
+    td: { padding: '15px', textAlign: 'left', borderBottom: '1px solid #dfe1e6', verticalAlign: 'middle' },
     emptyCell: { textAlign: 'center', padding: '2rem', color: '#5e6c84' },
     linkButton: { textDecoration: 'none', color: '#0052cc', fontWeight: 'bold' },
-    actionButton: { padding: '8px 12px', backgroundColor: '#28a745', color: 'white', textDecoration: 'none', borderRadius: '3px', fontWeight: 'bold' },
+    actionButton: { padding: '8px 12px', backgroundColor: '#0052cc', color: 'white', textDecoration: 'none', borderRadius: '3px', fontWeight: 'bold' },
+    separator: { margin: '0 10px', color: '#ccc' },
     disabledText: { color: '#999' }
 };
 

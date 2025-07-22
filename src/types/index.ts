@@ -10,6 +10,8 @@ export interface Company {
   name: string;
   adminId: string;
   createdAt: Timestamp;
+  overallReportDraft?: string;
+  finalReportReady?: boolean;
 }
 
 export interface UserProfile {

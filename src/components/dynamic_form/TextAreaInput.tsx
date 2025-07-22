@@ -8,9 +8,10 @@ interface TextAreaInputProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  disabled?: boolean;
 }
 
-const TextAreaInput: React.FC<TextAreaInputProps> = ({ id, label, description, value, onChange, placeholder }) => {
+const TextAreaInput: React.FC<TextAreaInputProps> = ({ id, label, description, value, onChange, placeholder, disabled = false }) => {
   return (
     <div style={styles.container}>
       <label htmlFor={id} style={styles.label}>{label}</label>
@@ -21,7 +22,8 @@ const TextAreaInput: React.FC<TextAreaInputProps> = ({ id, label, description, v
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder || 'Escribe tu respuesta aquí...'}
         rows={5}
-        style={styles.textarea}
+        style={{ ...styles.textarea, ...(disabled && styles.disabled) }}
+        disabled={disabled}
       />
     </div>
   );
@@ -51,6 +53,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '1rem',
     fontFamily: 'inherit',
     boxSizing: 'border-box'
+  },
+  disabled: {
+    backgroundColor: '#f2f2f2',
+    cursor: 'not-allowed',
   }
 };
 

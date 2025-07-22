@@ -20,6 +20,16 @@ const PREDETERMINED_AREAS = [
     "Alimentos y Bebidas (F&B)", "Limpieza y Mantenimiento (Housekeeping)", 
     "Administración y Finanzas", "Recursos Humanos"
 ];
+// --- MAPEO DE ÁREAS A PLANTILLAS ---
+const templateIdByArea: { [key: string]: string } = {
+    "Dirección General": "template_direccion",
+    "Marketing y Ventas": "template_marketing",
+    "Recepción y Reservas": "template_recepcion",
+    "Alimentos y Bebidas (F&B)": "template_fnb",
+    "Limpieza y Mantenimiento (Housekeeping)": "template_housekeeping",
+    "Administración y Finanzas": "template_finanzas",
+    "Recursos Humanos": "template_rrhh"
+};
 
 // --- Component ---
 const AreaBuilderPage: React.FC = () => {
@@ -96,14 +106,15 @@ const AreaBuilderPage: React.FC = () => {
         try {
             const batch = writeBatch(db);
             const areasCollectionRef = collection(db, 'areas');
-            const defaultTemplateId = 'template_generic';
-
+            
             areas.forEach(area => {
                 const newAreaDocRef = doc(areasCollectionRef); 
+                const assignedTemplateId = templateIdByArea[area.areaName] || "template_generic";
+
                 batch.set(newAreaDocRef, {
                     companyId: currentUser?.companyId,
                     name: area.areaName,
-                    templateId: defaultTemplateId,
+                    templateId: assignedTemplateId,
                     status: 'pending',
                     formId: nanoid(12),
                     createdAt: new Date(),
@@ -116,7 +127,6 @@ const AreaBuilderPage: React.FC = () => {
             });
 
             await batch.commit();
-            // CORREGIDO: Redirige a la ruta correcta del panel del cliente
             navigate('/dashboard/client');
 
         } catch (err) {
@@ -149,7 +159,7 @@ const AreaBuilderPage: React.FC = () => {
                         )}
                         <div style={styles.separator}></div>
                         <label style={styles.checkboxLabel}>
-                            <input type="checkbox" checked={isSelfAssigned} onChange={e => setIsSelfAssigned(!isSelfAssigned)} />
+                            <input type="checkbox" checked={isSelfAssigned} onChange={() => setIsSelfAssigned(!isSelfAssigned)} />
                             Asignarme esta área a mí ({currentUser?.name})
                         </label>
                         <div style={isSelfAssigned ? styles.disabled : {}}>

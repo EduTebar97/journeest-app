@@ -14,7 +14,7 @@ interface RegistrationData {
     initialObjectives: string[];
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   currentUser: UserProfile | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<UserProfile>;

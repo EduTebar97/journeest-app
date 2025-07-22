@@ -8,9 +8,10 @@ interface MultipleChoiceInputProps {
   options: string[];
   value: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }
 
-const MultipleChoiceInput: React.FC<MultipleChoiceInputProps> = ({ id, label, description, options = [], value, onChange }) => {
+const MultipleChoiceInput: React.FC<MultipleChoiceInputProps> = ({ id, label, description, options = [], value, onChange, disabled = false }) => {
   
   return (
     <div style={styles.container} aria-labelledby={id}>
@@ -22,9 +23,10 @@ const MultipleChoiceInput: React.FC<MultipleChoiceInputProps> = ({ id, label, de
           <button
             key={option}
             type="button"
-            onClick={() => onChange(option)}
-            style={value === option ? styles.selectedOption : styles.option}
+            onClick={() => !disabled && onChange(option)}
+            style={value === option ? styles.selectedOption : { ...styles.option, ...(disabled && styles.disabledOption) }}
             aria-pressed={value === option}
+            disabled={disabled}
           >
             {option}
           </button>
@@ -73,6 +75,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '1rem',
     fontWeight: 'bold'
   },
+  disabledOption: {
+    cursor: 'not-allowed',
+    backgroundColor: '#f2f2f2',
+  }
 };
 
 export default MultipleChoiceInput;

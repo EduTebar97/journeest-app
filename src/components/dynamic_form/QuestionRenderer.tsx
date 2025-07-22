@@ -12,9 +12,10 @@ interface QuestionRendererProps {
   question: Question;
   currentAnswer: Answer;
   onAnswerChange: (questionId: string, answer: Answer) => void;
+  isReadOnly?: boolean;
 }
 
-const QuestionRenderer: React.FC<QuestionRendererProps> = ({ question, currentAnswer, onAnswerChange }) => {
+const QuestionRenderer: React.FC<QuestionRendererProps> = ({ question, currentAnswer, onAnswerChange, isReadOnly = false }) => {
   const { id, type, label, description, options } = question;
 
   switch (type) {
@@ -26,6 +27,7 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({ question, currentAn
           description={description}
           value={typeof currentAnswer === 'string' ? currentAnswer : ''}
           onChange={(val) => onAnswerChange(id, val)}
+          disabled={isReadOnly}
         />
       );
     
@@ -39,6 +41,7 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({ question, currentAn
           onChange={(val) => onAnswerChange(id, val)}
           min={question.min}
           max={question.max}
+          disabled={isReadOnly}
         />
       );
 
@@ -51,6 +54,7 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({ question, currentAn
           description={description}
           items={items}
           onChange={(newItems) => onAnswerChange(id, newItems)}
+          disabled={isReadOnly}
         />
       );
       
@@ -63,6 +67,7 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({ question, currentAn
           options={options || []}
           value={typeof currentAnswer === 'string' ? currentAnswer : ''}
           onChange={(val) => onAnswerChange(id, val)}
+          disabled={isReadOnly}
         />
       );
       
@@ -76,6 +81,7 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({ question, currentAn
           options={options || []}
           value={values}
           onChange={(newValues) => onAnswerChange(id, newValues)}
+          disabled={isReadOnly}
         />
       );
     
