@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth, AuthProvider } from './contexts/AuthContext';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
 
 // Layouts
 import AdminLayout from './components/admin/AdminLayout';
@@ -42,40 +42,36 @@ const DashboardRedirect: React.FC = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <Routes>
-          {/* --- Rutas Públicas y Semi-Públicas --- */}
-          <Route path="/" element={<WelcomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/registro" element={<RegisterPage />} />
-          <Route path="/unauthorized" element={<UnauthorizedPage />} />
-          <Route path="/report/editor/:formId" element={<CollaboratorPage />} />
+    <Routes>
+      {/* --- Rutas Públicas y Semi-Públicas --- */}
+      <Route path="/" element={<WelcomePage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/registro" element={<RegisterPage />} />
+      <Route path="/unauthorized" element={<UnauthorizedPage />} />
+      <Route path="/report/editor/:formId" element={<CollaboratorPage />} />
 
-          {/* --- Rutas Protegidas --- */}
-          <Route path="/dashboard" element={<DashboardRedirect />} />
-          
-          <Route element={<RoleBasedProtectedRoute allowedRoles={['client']} />}>
-            <Route path="/onboarding/intro" element={<AreasIntroPage />} />
-            <Route path="/onboarding/builder" element={<AreaBuilderPage />} /> 
-            <Route path="/dashboard/client" element={<AdminDashboardPage />} />
-            <Route path="/report/view/:areaId" element={<ReportViewPage />} />
-          </Route>
-          
-          <Route element={<RoleBasedProtectedRoute allowedRoles={['futurlogix']} />}>
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<Navigate to="areas" replace />} /> 
-              <Route path="templates" element={<TemplateListPage />} />
-              <Route path="modules" element={<ModuleListPage />} />
-              <Route path="areas" element={<AreaListPage />} />
-            </Route>
-            {/* La ruta y el componente del editor del consultor se recrearán más adelante */}
-          </Route>
-          
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </Router>
-    </AuthProvider>
+      {/* --- Rutas Protegidas --- */}
+      <Route path="/dashboard" element={<DashboardRedirect />} />
+      
+      <Route element={<RoleBasedProtectedRoute allowedRoles={['client']} />}>
+        <Route path="/onboarding/intro" element={<AreasIntroPage />} />
+        <Route path="/onboarding/builder" element={<AreaBuilderPage />} /> 
+        <Route path="/dashboard/client" element={<AdminDashboardPage />} />
+        <Route path="/report/view/:areaId" element={<ReportViewPage />} />
+      </Route>
+      
+      <Route element={<RoleBasedProtectedRoute allowedRoles={['futurlogix']} />}>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<Navigate to="areas" replace />} /> 
+          <Route path="templates" element={<TemplateListPage />} />
+          <Route path="modules" element={<ModuleListPage />} />
+          <Route path="areas" element={<AreaListPage />} />
+        </Route>
+        {/* La ruta y el componente del editor del consultor se recrearán más adelante */}
+      </Route>
+      
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
   );
 }
 

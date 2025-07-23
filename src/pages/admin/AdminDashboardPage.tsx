@@ -1,9 +1,9 @@
 
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import { Area } from '../../types';
-import { AuthContext } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext'; // CAMBIO: Usar el hook en lugar del contexto directo
 import { Link } from 'react-router-dom';
 import AddAreaModal from '../../components/admin/AddAreaModal';
 
@@ -13,10 +13,14 @@ const AdminDashboardPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     
-    const { currentUser } = useContext(AuthContext)!;
+    const { currentUser } = useAuth()!; // CAMBIO: Obtener el usuario a través del hook
 
     const fetchAreas = useCallback(async () => {
-        if (!currentUser?.companyId) return;
+        if (!currentUser?.companyId) {
+            // Si no hay companyId, no podemos buscar. Detenemos la carga.
+            setLoading(false);
+            return;
+        }
         setLoading(true);
         setError(null);
         try {
@@ -26,6 +30,7 @@ const AdminDashboardPage: React.FC = () => {
             const areasData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Area));
             setAreas(areasData);
         } catch (err) {
+            console.error("Error fetching areas:", err);
             setError('No se pudieron cargar las áreas. Por favor, intente de nuevo.');
         } finally {
             setLoading(false);
@@ -33,10 +38,9 @@ const AdminDashboardPage: React.FC = () => {
     }, [currentUser?.companyId]);
 
     useEffect(() => {
-        if (currentUser) {
-            fetchAreas();
-        }
-    }, [currentUser, fetchAreas]);
+        // La condición de currentUser se maneja internamente en useAuth y fetchAreas
+        fetchAreas();
+    }, [fetchAreas]);
 
     // Calcula si todas las áreas están listas para el informe general
     const allAreasCompleted = areas.length > 0 && areas.every(area => area.status === 'report_ready');
